@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>서울 전시 지도</title>
+<style>
+:root{--bg:#eef1f4;--pn:#fff;--tx:#14202b;--mu:#5f6e7c;--ln:#d9e0e6;--ac:#1f6f78;--soon:#4a54b8;--hot:#c4561c;--river:#b9d3e4;--dim:#9aa7b3;--sel:#e3f1f2;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10171d;--pn:#18222b;--tx:#e7edf2;--mu:#9aa9b6;--ln:#2a3641;--ac:#5cc3cc;--soon:#9aa4ff;--hot:#ff9a62;--river:#24445a;--dim:#6b7a88;--sel:#1f3a40;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10171d;--pn:#18222b;--tx:#e7edf2;--mu:#9aa9b6;--ln:#2a3641;--ac:#5cc3cc;--soon:#9aa4ff;--hot:#ff9a62;--river:#24445a;--dim:#6b7a88;--sel:#1f3a40;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 "Pretendard","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif}
+header{padding:16px 16px 4px;max-width:1100px;margin:0 auto}h1{margin:0;font-size:26px;letter-spacing:-.02em}
+header p{margin:2px 0 0;color:var(--mu);font-size:13px}
+.tip{max-width:1100px;margin:10px auto 0;padding:10px 14px;border-left:4px solid var(--ac);background:var(--pn);font-size:14px}
+.tip b{color:var(--ac)}
+main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;max-width:1100px;margin:12px auto;padding:0 16px}
+#mapwrap{position:sticky;top:8px;align-self:start;background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:10px}
+svg{width:100%;height:auto;display:block}.rv{fill:none;stroke:var(--river);stroke-width:16;stroke-linecap:round;stroke-linejoin:round}
+.ref{fill:var(--dim);font-size:12px}.dist{cursor:pointer}.dist circle{fill:var(--ac);stroke:var(--pn);stroke-width:3}
+.dist.on circle{fill:var(--hot)}.dist text.n{fill:#fff;font-size:13px;font-weight:700;text-anchor:middle;pointer-events:none}
+.dist text.l{fill:var(--tx);font-size:14px;font-weight:600}
+.note{font-size:12px;color:var(--mu);margin:4px 2px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{border:1px solid var(--ln);background:none;color:var(--tx);padding:6px 11px;border-radius:99px;font:inherit;font-size:13px;cursor:pointer}
+.chip.on{background:var(--ac);border-color:var(--ac);color:var(--pn)}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.card h3{margin:2px 0 2px;font-size:17px;line-height:1.35}.v{color:var(--mu);font-size:14px}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:99px;border:1px solid currentColor;margin-right:6px}
+.on-b{color:var(--ac)}.soon-b{color:var(--soon)}.hot-b{color:var(--hot)}
+.row{font-size:14px;margin-top:4px}.free{color:var(--ac);font-weight:700}
+.card a{font-size:14px;color:var(--ac);text-decoration:none;font-weight:600}
+#empty{color:var(--mu);padding:16px}
+@media(max-width:820px){main{grid-template-columns:1fr}#mapwrap{position:static}}
+</style></head><body>
+<header><h1>서울 전시 지도</h1><p id="asof"></p></header>
+<div class="tip"><b>할인 정보</b> 매주 수요일은 ‘문화가 있는 날’이라 참여 시설에서 관람료 할인 등 혜택이 있습니다(시설마다 다름). 예를 들어 신문박물관은 직장인 점심시간(11:30~13:30) 무료, 월말 수요일 50% 할인입니다. 전시별 할인은 방문 전 공식 사이트에서 확인하세요.</div>
+<main>
+ <section id="mapwrap"><svg id="map" viewBox="0 0 560 440" role="img" aria-label="서울 지역별 전시 개략도"></svg>
+  <p class="note">개략도입니다. 원을 누르면 그 지역 전시만 보입니다. 숫자는 전시 수.</p><div class="chips" id="chips"></div></section>
+ <section id="list"></section>
+</main>
+<script>
+const D=[
+{t:"샤갈, 너머의 여정",v:"퐁피두센터 한화",d:"영등포구",s:"2026-11-24",e:"2027-03-28",p:"성인 25,000원",n:"수·토는 21시까지 야간 운영 · 월 휴관"},
+{t:"다른 공간 안으로 (여성 작가 환경미술)",v:"리움미술관",d:"용산구",s:"2026-05-05",e:"2026-11-29",p:"일반 18,000원",n:"화~일 10~18시 · 월 휴관"},
+{t:"게오르그 바젤리츠",v:"타데우스 로팍 서울",d:"용산구",s:"2026-09-01",e:"2026-11-24",p:"요금은 공식 사이트 확인",n:"독일 신표현주의 거장 · 세화미술관에서도 전시"},
+{t:"노들anding",v:"노들섬",d:"용산구",s:null,e:"2026-11-29",p:"무료",f:1,n:"예약 없이 관람"},
+{t:"린 허쉬만 리슨: 나의 [나]들",v:"서울시립미술관 서소문본관",d:"중구",s:"2026-10-21",e:"2027-02-21",p:"요금은 공식 사이트 확인",n:"연계 영화상영 ‘새롭게 발견된 여성들’ 11월~2027년 1월"},
+{t:"언폴드엑스 2026",v:"문화역서울284",d:"중구",s:"2026-11-26",e:"2026-12-09",p:"요금은 공식 사이트 확인",n:"AI 등 첨단기술과 예술이 만나는 아트 페스티벌"},
+{t:"게오르그 바젤리츠",v:"세화미술관",d:"종로구",s:null,e:"2026-12-27",p:"요금은 공식 사이트 확인",n:"역사적 트라우마를 회화로 승화한 거장전"},
+{t:"노정란 회고전: 색과 함께 춤을",v:"성곡미술관",d:"종로구",s:"2026-10-16",e:"2026-11-28",p:"요금은 공식 사이트 확인",n:"반세기 추상회화의 여정"},
+{t:"다시 모은 조각들: 인사동의 시간",v:"인사도시유적전시관",d:"종로구",s:"2026-11-17",e:"2027-03-28",p:"요금은 공식 사이트 확인",n:"인사동 출토 유물로 보는 도시의 변화"},
+{t:"제니 홀저 개인전",v:"국제갤러리 한옥",d:"종로구",s:"2026-11-19",e:null,ep:"2027년 1월 중 종료 예정",p:"요금은 공식 사이트 확인",n:""},
+{t:"SeMA Collection: 시선의 결",v:"노원아트뮤지엄",d:"노원구",s:"2026-10-15",e:"2026-11-29",p:"무료",f:1,n:"10~18시(입장마감 17:30) · 월 휴관"}
+];
+const P={종로구:[310,215,-14,-12,"end"],중구:[339,230,14,22,"start"],용산구:[327,284,14,5,"start"],영등포구:[180,294,-14,5,"end"],노원구:[429,78,14,5,"start"]};
+const REF=[["마포",199,240],["성동",404,232],["강남",416,334],["송파",522,334]];
+const DAY=864e5,today=new Date(new Date().toDateString()),dt=s=>s?new Date(s+"T00:00:00"):null;
+const f=d=>d?`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`:"";
+const items=D.map(x=>{const s=dt(x.s),e=dt(x.e);x.S=s;x.E=e;
+ if(e&&e<today)return null;
+ const left=e?Math.round((e-today)/DAY):999;
+ if(s&&s>today){x.st="soon";x.lb=`${Math.ceil((s-today)/DAY)}일 후 시작`}
+ else if(left<=7){x.st="hot";x.lb=left===0?"오늘 마감":`마감 D-${left}`}
+ else{x.st="on";x.lb="진행중"}
+ x.per=(s?f(s)+" ~ ":"~ ")+(e?f(e):x.ep);return x}).filter(Boolean).sort((a,b)=>(a.E||new Date(9e12))-(b.E||new Date(9e12)));
+const FL={"전체":()=>1,"진행중":x=>x.st!=="soon","곧 시작":x=>x.st==="soon","마감 임박":x=>x.st==="hot","무료":x=>x.f};
+let sel=null,fl="전체";const $=id=>document.getElementById(id);
+$("asof").textContent=`${f(today)} 기준 · 진행·예정 전시 ${items.length}건 (2026.11.21 조사)`;
+function draw(){
+ const cnt={};items.filter(FL[fl]).forEach(x=>cnt[x.d]=(cnt[x.d]||0)+1);
+ let h='<polyline class="rv" points="0,195 100,235 187,262 233,296 290,300 342,305 420,279 498,305 560,254"/>';
+ REF.forEach(r=>h+=`<text class="ref" x="${r[1]}" y="${r[2]}">${r[0]}</text>`);
+ for(const k in P){const p=P[k],c=cnt[k]||0;if(!c)continue;
+  h+=`<g class="dist${sel===k?" on":""}" data-d="${k}"><circle cx="${p[0]}" cy="${p[1]}" r="14"/><text class="n" x="${p[0]}" y="${p[1]+5}">${c}</text><text class="l" x="${p[0]+p[2]}" y="${p[1]+p[3]}" text-anchor="${p[4]}">${k}</text></g>`}
+ $("map").innerHTML=h;
+ $("chips").innerHTML=Object.keys(FL).map(k=>`<button class="chip${fl===k?" on":""}" data-f="${k}">${k}</button>`).join("")+(sel?`<button class="chip" data-f="__all">${sel} ✕</button>`:"");
+ const L=items.filter(FL[fl]).filter(x=>!sel||x.d===sel);
+ $("list").innerHTML=L.map(x=>`<div class="card"><span class="badge ${x.st}-b">${x.lb}</span><span class="v">${x.d}</span>
+ <h3>${x.t}</h3><div class="v">${x.v}</div><div class="row">${x.per}</div>
+ <div class="row ${x.f?"free":""}">${x.p}</div>${x.n?`<div class="row v">${x.n}</div>`:""}
+ <div class="row"><a href="https://map.naver.com/p/search/${encodeURIComponent(x.v)}" target="_blank" rel="noopener">네이버 지도에서 열기</a></div></div>`).join("")||'<p id="empty">조건에 맞는 전시가 없습니다. 필터를 바꿔 보세요.</p>'}
+document.addEventListener("click",e=>{const g=e.target.closest(".dist"),c=e.target.closest(".chip");
+ if(g){sel=sel===g.dataset.d?null:g.dataset.d;draw()}
+ else if(c){if(c.dataset.f==="__all")sel=null;else fl=c.dataset.f;draw()}});
+draw();
+</script></body></html>
